@@ -21,15 +21,18 @@ package "munin-node"
 
 service "munin-node" do
   supports :restart => true
-  action :enable
+  action [ :enable, :start ]
 end
 
-munin_servers = search(:node, "role:#{node['munin']['server_role']} AND app_environment:#{node['app_environment']}")
+#munin_servers = search(:node, "role:#{node['munin']['server_role']} AND app_environment:#{node['app_environment']}")
+#munin_servers = default[:munin][:servers][:addresses]
+#variables :munin_servers => munin_servers
+munin_servers_ip =  search(:node, 'recipes:munin\:\:server').map { |cfg| cfg["ipaddress"] }
 
 template "/etc/munin/munin-node.conf" do
   source "munin-node.conf.erb"
   mode 0644
-  variables :munin_servers => munin_servers
+  variables :munin_servers => munin_servers_ip
   notifies :restart, resources(:service => "munin-node")
 end
 
@@ -40,3 +43,45 @@ when "arch"
     notifies :restart, "service[munin-node]"
   end
 end
+
+if node.run_list.roles.include? "SplayceMySQL"
+  %w(
+    mysql_queries      
+    mysql_slowqueries  
+    mysql_threads 
+    mysql_bytes
+  ).each do |plugin_name|
+    munin_plugin plugin_name do
+      enable true
+    end
+  end
+end
+
+if node.run_list.roles.include? "Stootie"
+  %w(
+    mysql_queries      
+    mysql_slowqueries  
+    mysql_threads 
+    mysql_bytes
+  ).each do |plugin_name|
+    munin_plugin plugin_name do
+      enable true
+    end
+  end
+end
+
+#add/remove plugin 
+%w(
+  nfs_client_custom
+  sendmail_mailqueue
+  sendmail_mailstats
+  sendmail_mailtraffic
+  nfs4_client
+  lpstat
+  users
+).each do |plugin_name|
+  munin_plugin plugin_name do
+    enable false
+  end
+end
+

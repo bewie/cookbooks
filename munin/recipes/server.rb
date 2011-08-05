@@ -17,66 +17,34 @@
 # limitations under the License.
 #
 
-include_recipe "apache2"
-include_recipe "apache2::mod_auth_openid"
-include_recipe "apache2::mod_rewrite"
-include_recipe "munin::client"
+#include_recipe "apache2"
+#include_recipe "apache2::mod_auth_openid"
+#include_recipe "apache2::mod_rewrite"
+#include_recipe "munin::client"
 
-package "munin"
+#package "munin"
 
-case node[:platform]
-when "arch"
-  cron "munin-graph-html" do
-    command "/usr/bin/munin-cron"
-    user "munin"
-    minute "*/5"
-  end
-else
-  cookbook_file "/etc/cron.d/munin" do
-    source "munin-cron"
-    mode "0644"
-    owner "root"
-    group "root"
-    backup 0
-  end
+service "apache2" do
+  supports :status => true, :restart => true
+  action :enable
 end
 
-munin_servers = search(:node, "munin:[* TO *] AND role:#{node[:app_environment]}")
 
-if node[:public_domain]
-  case node[:app_environment]
-  when "production"
-    public_domain = node[:public_domain]
-  else
-    public_domain = "#{node[:app_environment]}.#{node[:public_domain]}"
-  end
-else
-  public_domain = node[:domain]
-end
+munin_clients = search(:node, 'recipes:munin\:\:client')
 
-template "/etc/munin/munin.conf" do
+
+template "#{node['munin']['home']}/conf/munin.conf" do
   source "munin.conf.erb"
   mode 0644
-  variables(:munin_nodes => munin_servers)
+  variables(:munin_nodes => munin_clients)
 end
 
-apache_site "000-default" do
-  enable false
-end
+#authorized_ips = node[:iptables][:ssh][:addresses]
 
-template "#{node[:apache][:dir]}/sites-available/munin.conf" do
-  source "apache2.conf.erb"
-  mode 0644
-  variables :public_domain => public_domain
-  if ::File.symlink?("#{node[:apache][:dir]}/sites-enabled/munin.conf")
-    notifies :reload, resources(:service => "apache2")
-  end
-end
+#template "/etc/apache2/conf.d/munin" do
+#  source "apache2.confd.erb"
+#  mode 0644
+#  variables(:ips => authorized_ips)
+#  notifies :restart, "service[apache2]", :delayed
+#end
 
-directory node['munin']['docroot'] do
-  owner "munin"
-  group "munin"
-  mode 0755
-end
-
-apache_site "munin.conf"

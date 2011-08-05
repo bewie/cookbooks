@@ -1,0 +1,18 @@
+
+Alias /munin /var/www/munin
+<Directory /var/www/munin>
+        Order allow,deny
+        Allow from localhost <%= @ips.join(',') %>
+        Options None
+	  #Nagios's users
+         AuthUserFile /etc/nagios3/htpasswd.users
+         AuthName "Munin"
+         AuthType Basic
+         require valid-user
+
+    <IfModule mod_expires.c>
+        ExpiresActive On
+        ExpiresDefault M310
+    </IfModule>
+
+</Directory> 

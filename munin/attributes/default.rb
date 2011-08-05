@@ -1,27 +1,19 @@
-#
-# Cookbook Name:: munin
-# Attributes:: default
-#
-# Copyright 2010-2011, Opscode, Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
+#default[:munin][:server][:addresses] = Array.new
 
-default['munin']['server_role'] = 'monitoring'
+### SOURCE PACKAGES
+default[:munin][:version]	= "1.4.5"
+default[:munin][:source]	= "http://sourceforge.net/projects/munin/files/munin%20stable/#{munin[:version]}/munin-#{munin[:version]}.tar.gz"
+default[:munin][:checksum]	= "4f8632713c5267e282b091cf7ef5163c5de321536e76dbaab2204aa23c957138"
 
-case node[:platform]
-when "arch"
-  default['munin']['docroot'] = "/srv/http/munin"
-else
-  default['munin']['docroot'] = "/var/www/munin"
-end
+
+### GENERAL
+default[:munin][:home]         = "/usr/local/munin/"
+default[:munin][:dir]         = "#{munin[:home]}/munin-#{munin[:version]}" # For install from source
+default[:munin][:current]     = "#{munin[:home]}/current"
+
+default[:munin][:logdir]      = "/usr/local/munin/log"
+default[:munin][:logfile]     = "#{munin[:logdir]}/munin.log"
+default[:munin][:pidfile]     = "/var/run/munin.pid"
+
+default[:munin][:port]        = 4949
+

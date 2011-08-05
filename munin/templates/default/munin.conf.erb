@@ -1,18 +1,26 @@
 # The next three variables specifies where the location of the RRD
 # databases, the HTML output, and the logs, severally.  They all
 # must be writable by the user running munin-cron.
-dbdir   /var/lib/munin
-htmldir /var/www/munin
-logdir  /var/log/munin
-rundir  /var/run/munin
+dbdir   <%= node['munin']['home'] %>var/db
+htmldir   <%= node['munin']['home'] %>current/www/docs
+logdir   <%= node['munin']['home'] %>log/munin
+rundir   <%= node['munin']['home'] %>var/run/munin
 
 # Where to look for the HTML templates
-tmpldir /etc/munin/templates
+tmpldir <%= node['munin']['home'] %>conf/templates
+
+includedir <%= node['munin']['home'] %>conf/munin-conf.d
 
 # a simple host tree
 <% @munin_nodes.each do |system| -%>
-[<%= system[:hostname] %>]
-    address <%= system[:ipaddress] %>
-    use_node_name yes
+  <% unless system[:roles][0] == "BaseConfig" -%>
+    [<%= system[:roles][0] %>;<%= system[:hostname] %>]
+      address <%= system[:ec2][:public_hostname] %>
+      use_node_name yes
+  <% else -%>
+    [<%= system[:roles][1] %>;<%= system[:hostname] %>]
+      address <%= system[:ec2][:public_hostname] %>
+      use_node_name yes
+  <% end -%>
 
 <% end -%>
