@@ -1,0 +1,7 @@
+
+<% @munin_nodes.each do |system| -%>
+[Cloud;<%= system[:hostname] %>]
+    address <%= system[:ipaddress] %>
+    use_node_name yes
+
+<% end -%>

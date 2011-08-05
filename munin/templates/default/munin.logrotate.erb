@@ -1,0 +1,8 @@
+<%= @logdir %>/munin/*.log {
+        daily
+        missingok
+        rotate 7
+        compress
+        notifempty
+        create 640 munin munin
+}
